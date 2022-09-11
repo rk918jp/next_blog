@@ -1,13 +1,59 @@
+import React from "react";
 import {MainLayout} from "../components/MainLayout";
 import {getPostsByCategory} from "../util/mdxUtil";
 import {postCategoryDef} from "../definitions/postDefinitions";
-import {Button, Card, CardActions, CardContent, CardHeader, Container, Divider, Typography} from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  CardHeader,
+  Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  Snackbar,
+  Typography
+} from "@mui/material";
 import Link from "next/link";
 import moment from "moment";
+import axios from "axios";
 
 const Home = ({categories}) => {
+  const [deletePost, setDeletePost] = React.useState();
+  const [message, setMessage] = React.useState();
+
+  const handleRemovePost = (post) => {
+    axios.post("/api/deletePost", {
+      category: post.category,
+      slug: post.slug,
+    }).then((res) => {
+      setDeletePost();
+      setMessage({
+        value: "Success",
+        severity: "success",
+      });
+
+      // TODO: 一覧のリフレッシュ
+    });
+  };
+
   return (
     <MainLayout>
+      <Snackbar
+        anchorOrigin={{vertical: "top", horizontal: "center"}}
+        autoHideDuration={1000}
+        open={message}
+        onClose={() => setMessage(undefined)}
+      >
+        {message && (
+          <Alert severity={message.severity}>{message.value}</Alert>
+        )}
+      </Snackbar>
       {categories.map((category) => (
         <Container sx={{mb: 5}}>
           <Typography variant={"h2"} sx={{fontSize: 30}}>
@@ -29,9 +75,19 @@ const Home = ({categories}) => {
                         variant: "subtitle2",
                       }}
                       action={
-                        <Link href={`${post.path}/edit`}>
-                          <Button size={"small"}>Edit</Button>
-                        </Link>
+                        <>
+                          <Link href={`${post.path}/edit`}>
+                            <Button size={"small"}>Edit</Button>
+                          </Link>
+                          <Button
+                            size={"small"}
+                            color={"error"}
+                            onClick={(e) => {
+                              setDeletePost(post);
+                              e.preventDefault();
+                            }}
+                          >Delete</Button>
+                        </>
                       }
                     />
                   </Card>
@@ -44,6 +100,22 @@ const Home = ({categories}) => {
 
         </Container>
       ))}
+      <Dialog open={deletePost}>
+        <DialogTitle>
+          Remove post
+        </DialogTitle>
+        <DialogContent>
+          You are about to delete post <span style={{backgroundColor: "#eee"}}>{deletePost?.path}</span>.
+          <br/>
+          Are you sure?
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setDeletePost();
+          }}>Cancel</Button>
+          <Button onClick={() => handleRemovePost(deletePost)} color={"error"}>Delete</Button>
+        </DialogActions>
+      </Dialog>
     </MainLayout>
   )
 }

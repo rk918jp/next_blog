@@ -93,3 +93,13 @@ export const updatePost = async (content, metadata) => {
   fs.writeFileSync(filePath, mdxString);
   return true;
 }
+
+export const deletePost = async (category, slug) => {
+  const filePath = `mdx-contents/${category}/${slug}.mdx`;
+  const fileExists = fs.existsSync(filePath);
+  if (!fileExists) {
+    throw new Error("Not found");
+  }
+  fs.unlinkSync(`mdx-contents/${category}/${slug}.mdx`);
+  return true;
+}
