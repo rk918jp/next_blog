@@ -132,6 +132,7 @@ export async function getStaticProps(context) {
         posts: postsByCategory[idx],
       })),
     },
+    revalidate: 1,
   };
 }
 

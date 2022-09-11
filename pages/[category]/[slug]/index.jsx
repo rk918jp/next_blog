@@ -29,7 +29,6 @@ const PostPage = (props) => {
 
 export async function getStaticProps(context) {
   const {category, slug} = context.params;
-
   const post = await getPost(category, slug);
   return {
     props: {
@@ -51,7 +50,7 @@ export async function getStaticPaths() {
 
   return {
     paths,
-    fallback: true,
+    fallback: false,
   };
 }
 
