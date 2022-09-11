@@ -4,8 +4,8 @@ import {
   Paper,
   Typography,
 } from "@mui/material";
-import {getPost, getPosts} from "../../util/mdxUtil";
-import {MainLayout} from "../../components/MainLayout";
+import {getPost, getPosts} from "../../../util/mdxUtil";
+import {MainLayout} from "../../../components/MainLayout";
 
 const PostPage = (props) => {
   const {category, slug, post} = props;
