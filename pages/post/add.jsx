@@ -6,6 +6,8 @@ import dynamic from "next/dynamic";
 import {Alert, Button, FormControl, Grid, InputLabel, MenuItem, Select, Snackbar, TextField} from "@mui/material";
 import {postCategoryDef} from "../../definitions/postDefinitions";
 import axios from "axios";
+import {DateTimePicker} from "@mui/x-date-pickers";
+import moment from "moment";
 
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor"),
@@ -23,6 +25,7 @@ const PostAddPage = (props) => {
   const [slug, setSlug] = React.useState();
   const [category, setCategory] = React.useState(postCategoryDef?.[0].value);
   const [message, setMessage] = React.useState();
+  const [publishedAt, setPublishedAt] = React.useState();
 
   const handleClickSave = async () => {
     try {
@@ -32,6 +35,7 @@ const PostAddPage = (props) => {
           title,
           category,
           slug,
+          publishedAt: (publishedAt ?? moment()).format("YYYY-MM-DD HH:mm"),
         },
       });
       setMessage({
@@ -99,6 +103,17 @@ const PostAddPage = (props) => {
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               required
+            />
+          </Grid>
+        </Grid>
+        <Grid container spacing={1}>
+          <Grid item sm={6}>
+            <DateTimePicker
+              label={"Published at"}
+              onChange={setPublishedAt}
+              value={publishedAt}
+              renderInput={(props) => <TextField {...props} fullWidth />}
+              ampm={false}
             />
           </Grid>
         </Grid>
