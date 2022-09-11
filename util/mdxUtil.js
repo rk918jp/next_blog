@@ -56,10 +56,11 @@ export const getPost = async (category, slug) => {
   return {
     metadata,
     content: result.toString(),
+    contentMd: mdString,
   }
 };
 
-export const savePost = async (content, metadata) => {
+export const createPost = async (content, metadata) => {
   const mdxString = matter.stringify(content, metadata);
   const dirPath = `mdx-contents/${metadata.category}`
   const filePath = `${dirPath}/${metadata.slug}.mdx`;
@@ -72,6 +73,21 @@ export const savePost = async (content, metadata) => {
   const fileExists = fs.existsSync(filePath);
   if (fileExists) {
     throw new Error("Duplicate post");
+  }
+
+  fs.writeFileSync(filePath, mdxString);
+  return true;
+}
+
+
+export const updatePost = async (content, metadata) => {
+  const mdxString = matter.stringify(content, metadata);
+  const dirPath = `mdx-contents/${metadata.category}`
+  const filePath = `${dirPath}/${metadata.slug}.mdx`;
+
+  const dirExists = fs.existsSync(dirPath);
+  if (!dirExists) {
+    fs.mkdirSync(dirPath);
   }
 
   fs.writeFileSync(filePath, mdxString);

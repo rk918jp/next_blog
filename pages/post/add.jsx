@@ -29,7 +29,7 @@ const PostAddPage = (props) => {
 
   const handleClickSave = async () => {
     try {
-      const res = await axios.post("/api/savePost", {
+      const res = await axios.post("/api/createPost", {
         content,
         metadata: {
           title,

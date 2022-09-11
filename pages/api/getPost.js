@@ -1,12 +1,13 @@
-import {savePost} from "../../util/mdxUtil";
+import {getPost} from "../../util/mdxUtil";
 
 const handler = async (req, res) => {
-  const {content, metadata} = req.body;
+  const {category, slug} = req.query;
   try {
-    await savePost(content, metadata);
+    const data = await getPost(category, slug);
     res.status(200).json({
       result: "Success",
-    })
+      data,
+    });
   } catch (e) {
     res.status(400).json({
       result: "Error",

@@ -29,7 +29,9 @@ const Home = ({categories}) => {
                         variant: "subtitle2",
                       }}
                       action={
-                        <Button size={"small"}>Edit</Button>
+                        <Link href={`${post.path}/edit`}>
+                          <Button size={"small"}>Edit</Button>
+                        </Link>
                       }
                     />
                   </Card>
