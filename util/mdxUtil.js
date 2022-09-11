@@ -31,3 +31,22 @@ export const getPost = async (category, slug) => {
     content: result.toString(),
   }
 };
+
+export const savePost = async (content, metadata) => {
+  const mdxString = matter.stringify(content, metadata);
+  const dirPath = `mdx-contents/${metadata.category}`
+  const filePath = `${dirPath}/${metadata.slug}.mdx`;
+
+  const dirExists = fs.existsSync(dirPath);
+  if (!dirExists) {
+    fs.mkdirSync(dirPath);
+  }
+
+  const fileExists = fs.existsSync(filePath);
+  if (fileExists) {
+    throw new Error("Duplicate post");
+  }
+
+  fs.writeFileSync(filePath, mdxString);
+  return true;
+}

@@ -1,7 +1,16 @@
+const withTM = require('next-transpile-modules')([
+  '@uiw/react-md-editor',
+  '@uiw/react-markdown-preview',
+]);
+
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  experimental: {
+    exmExternals: "loose",
+  }
 }
+
 
 const withMDX = require("@next/mdx")({
   extension: /\.mdx?$/,
@@ -11,4 +20,4 @@ const withMDX = require("@next/mdx")({
   },
 });
 
-module.exports = withMDX(nextConfig);
+module.exports = withMDX(withTM(nextConfig));

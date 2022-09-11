@@ -47,7 +47,7 @@ export const MainLayout = ({children}) => {
                     <ListItemText primary="Home"/>
                   </ListItemButton>
                 </Link>
-                <Link href={"post/add"}>
+                <Link href={"/post/add"}>
                   <ListItemButton>
                     <ListItemIcon>
                       <Add />
