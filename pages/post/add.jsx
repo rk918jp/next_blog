@@ -8,6 +8,7 @@ import {postCategoryDef} from "../../definitions/postDefinitions";
 import axios from "axios";
 import {DateTimePicker} from "@mui/x-date-pickers";
 import moment from "moment";
+import {useRouter} from "next/router";
 
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor"),
@@ -20,6 +21,7 @@ const MarkdownPreview = dynamic(
 )
 
 const PostAddPage = (props) => {
+  const router = useRouter();
   const [content, setContent] = React.useState();
   const [title, setTitle] = React.useState();
   const [slug, setSlug] = React.useState();
@@ -42,6 +44,8 @@ const PostAddPage = (props) => {
         value: "Success",
         severity: "success",
       });
+
+      router.push(`/${category}/${slug}`);
     } catch (e) {
       setMessage({
         value: "Error",

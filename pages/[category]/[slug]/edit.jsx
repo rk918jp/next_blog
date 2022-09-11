@@ -59,6 +59,8 @@ const PostEditPage = (props) => {
         value: "Success",
         severity: "success",
       });
+
+      router.push(`/${category}/${slug}`);
     } catch (e) {
       setMessage({
         value: "Error",
