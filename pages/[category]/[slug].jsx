@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  Divider,
   Paper,
   Typography,
 } from "@mui/material";
@@ -19,6 +20,7 @@ const PostPage = (props) => {
         <Typography variant={"h1"} sx={{fontSize: 30, fontWeight: "600"}}>
           {metadata.title}
         </Typography>
+        <Divider sx={{my: 1}} />
         <div dangerouslySetInnerHTML={{__html: post.content}} />
       </Paper>
     </MainLayout>

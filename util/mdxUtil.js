@@ -1,23 +1,43 @@
 import fs from "fs";
+import recursive from "recursive-readdir";
 import matter from "gray-matter";
 import {remark} from "remark";
 import remarkHtml from "remark-html";
 
-export const getPosts = async () => {
-  const context = require.context("../mdx-contents/", true);
-  const articles = [];
-  for (const key of context.keys()) {
-    const path = key.slice(2);
-    const [category, slug] = path.replace(".mdx", "").split("/");
+export const getPostsByCategory = async (category) => {
+  const files = await recursive(`mdx-contents/${category}`);
+  return files.map((path) => {
+    const [category, slug] = path
+      .replace("mdx-contents/", "")
+      .replace(".mdx", "")
+      .split("/");
     const file = fs.readFileSync(`mdx-contents/${category}/${slug}.mdx`);
     const {data: metadata} = matter(file);
-    articles.push({
+    return {
       category,
       slug,
       metadata,
-    });
-  }
-  return articles;
+      path: `/${category}/${slug}`,
+    };
+  });
+};
+
+export const getPosts = async () => {
+  const files = await recursive(`mdx-contents`);
+  return files.map((path) => {
+    const [category, slug] = path
+      .replace("mdx-contents/", "")
+      .replace(".mdx", "")
+      .split("/");
+    const file = fs.readFileSync(`mdx-contents/${category}/${slug}.mdx`);
+    const {data: metadata} = matter(file);
+    return {
+      category,
+      slug,
+      metadata,
+      path: `/${category}/${slug}`,
+    };
+  });
 };
 
 export const getPost = async (category, slug) => {
