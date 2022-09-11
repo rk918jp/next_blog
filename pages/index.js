@@ -55,7 +55,7 @@ const Home = ({categories}) => {
         )}
       </Snackbar>
       {categories.map((category) => (
-        <Container sx={{mb: 5}}>
+        <Container sx={{mb: 5}} key={category.value}>
           <Typography variant={"h2"} sx={{fontSize: 30}}>
             {category.label}
           </Typography>

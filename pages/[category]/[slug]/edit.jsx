@@ -130,7 +130,7 @@ const PostEditPage = (props) => {
                       disabled
                     >
                       {postCategoryDef.map((category) => (
-                        <MenuItem value={category.value}>{category.label}</MenuItem>
+                        <MenuItem value={category.value} key={category.value}>{category.label}</MenuItem>
                       ))}
                     </Select>
                   </FormControl>
