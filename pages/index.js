@@ -1,29 +1,37 @@
 import {MainLayout} from "../components/MainLayout";
 import {getPostsByCategory} from "../util/mdxUtil";
 import {postCategoryDef} from "../definitions/postDefinitions";
-import {Card, CardContent, Container, Divider, Typography} from "@mui/material";
+import {Button, Card, CardActions, CardContent, CardHeader, Container, Divider, Typography} from "@mui/material";
 import Link from "next/link";
+import moment from "moment";
 
 const Home = ({categories}) => {
   return (
     <MainLayout>
       {categories.map((category) => (
-        <Container>
+        <Container sx={{mb: 5}}>
           <Typography variant={"h2"} sx={{fontSize: 30}}>
             {category.label}
           </Typography>
-          <Divider sx={{my: 1}}/>
+          <Divider sx={{mt: 1, mb: 3}}/>
           {category.posts.length ? (
             <>
               {category.posts.map((post) => (
                 <Link href={post.path} key={post.path}>
                   <Card sx={{my: 2}}>
-                    <CardContent>
-                      <Typography variant={"h5"}>
-                        {post.metadata.title}
-                      </Typography>
-
-                    </CardContent>
+                    <CardHeader
+                      title={post.metadata.title}
+                      titleTypographyProps={{
+                        variant: "h5"
+                      }}
+                      subheader={moment(post.metadata.publishedAt).format("YYYY/MM/DD HH:mm")}
+                      subheaderTypographyProps={{
+                        variant: "subtitle2",
+                      }}
+                      action={
+                        <Button size={"small"}>Edit</Button>
+                      }
+                    />
                   </Card>
                 </Link>
               ))}

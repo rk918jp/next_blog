@@ -3,6 +3,7 @@ import recursive from "recursive-readdir";
 import matter from "gray-matter";
 import {remark} from "remark";
 import remarkHtml from "remark-html";
+import moment from "moment";
 
 export const getPostsByCategory = async (category) => {
   const files = await recursive(`mdx-contents/${category}`);
@@ -19,7 +20,10 @@ export const getPostsByCategory = async (category) => {
       metadata,
       path: `/${category}/${slug}`,
     };
-  });
+  })
+    .sort((a,b) => {
+      return moment(a.metadata.publishedAt).isAfter(b.metadata.publishedAt) ? -1 : 1;
+    });
 };
 
 export const getPosts = async () => {
@@ -37,7 +41,10 @@ export const getPosts = async () => {
       metadata,
       path: `/${category}/${slug}`,
     };
-  });
+  })
+    .sort((a,b) => {
+      return moment(a.metadata.publishedAt).isAfter(b.metadata.publishedAt) ? -1 : 1;
+    });
 };
 
 export const getPost = async (category, slug) => {
