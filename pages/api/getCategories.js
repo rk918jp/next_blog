@@ -4,11 +4,7 @@ const prisma = new PrismaClient();
 
 const handler = async (req, res) => {
   try {
-    const categories = await prisma.category.findMany({
-      include: {
-        posts: true,
-      },
-    });
+    const categories = await prisma.category.findMany();
     res.status(200).json({
       result: "Success",
       data: categories,

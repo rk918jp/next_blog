@@ -16,6 +16,7 @@ const handler = async (req, res) => {
       result: "Success",
     })
   } catch (e) {
+    console.error(e)
     res.status(400).json({
       result: "Error",
     })

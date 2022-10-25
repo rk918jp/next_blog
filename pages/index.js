@@ -11,6 +11,7 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
+  Skeleton,
   Snackbar,
   Typography
 } from "@mui/material";
@@ -53,52 +54,58 @@ const Home = () => {
           <Alert severity={message.severity}>{message.value}</Alert>
         )}
       </Snackbar>
-      {data.data.map((category) => (
-        <Container sx={{mb: 5}} key={category.value}>
-          <Typography variant={"h2"} sx={{fontSize: 30}}>
-            {category.label}
-          </Typography>
-          <Divider sx={{mt: 1, mb: 3}}/>
-          {category.posts.length ? (
-            <>
-              {category.posts.map((post) => (
-                <Link href={`/${category.id}/${post.slug}`} key={`/${category}/${post.slug}`}>
-                  <Card sx={{my: 2}}>
-                    <CardHeader
-                      title={post.title}
-                      titleTypographyProps={{
-                        variant: "h5"
-                      }}
-                      subheader={moment(post.publishedAt).format("YYYY/MM/DD HH:mm")}
-                      subheaderTypographyProps={{
-                        variant: "subtitle2",
-                      }}
-                      action={
-                        <>
-                          <Link href={`${post.path}/edit`}>
-                            <Button size={"small"}>Edit</Button>
-                          </Link>
-                          <Button
-                            size={"small"}
-                            color={"error"}
-                            onClick={(e) => {
-                              setDeletePost(post);
-                              e.preventDefault();
-                            }}
-                          >Delete</Button>
-                        </>
-                      }
-                    />
-                  </Card>
-                </Link>
-              ))}
-            </>
-          ) : (
-            <Typography>Not Found</Typography>
-          )}
+      {loading ? (
+        <Skeleton/>
+      ) : (
+        <>
+          {data?.data?.map((category) => (
+            <Container sx={{mb: 5}} key={category.value}>
+              <Typography variant={"h2"} sx={{fontSize: 30}}>
+                {category.label}
+              </Typography>
+              <Divider sx={{mt: 1, mb: 3}}/>
+              {category.posts.length ? (
+                <>
+                  {category.posts.map((post) => (
+                    <Link href={`/${category.id}/${post.slug}`} key={`/${category}/${post.slug}`}>
+                      <Card sx={{my: 2}}>
+                        <CardHeader
+                          title={post.title}
+                          titleTypographyProps={{
+                            variant: "h5"
+                          }}
+                          subheader={moment(post.publishedAt).format("YYYY/MM/DD HH:mm")}
+                          subheaderTypographyProps={{
+                            variant: "subtitle2",
+                          }}
+                          action={
+                            <>
+                              <Link href={`/${category.id}/${post.slug}/edit`}>
+                                <Button size={"small"}>Edit</Button>
+                              </Link>
+                              <Button
+                                size={"small"}
+                                color={"error"}
+                                onClick={(e) => {
+                                  setDeletePost(post);
+                                  e.preventDefault();
+                                }}
+                              >Delete</Button>
+                            </>
+                          }
+                        />
+                      </Card>
+                    </Link>
+                  ))}
+                </>
+              ) : (
+                <Typography>Not Found</Typography>
+              )}
 
-        </Container>
-      ))}
+            </Container>
+          ))}
+        </>
+      )}
       <Dialog open={deletePost ?? false}>
         <DialogTitle>
           Remove post

@@ -10,6 +10,9 @@ import {DateTimePicker} from "@mui/x-date-pickers";
 import moment from "moment";
 import {useRouter} from "next/router";
 import MarkDown from "markdown-to-jsx";
+import {availableMdxComponents} from "../../definitions/availableMdxComponents";
+import useSWR from "swr";
+import {fetcher} from "../../util/fetcher";
 
 
 const MDEditor = dynamic(
@@ -21,10 +24,6 @@ const MarkdownPreview = dynamic(
   () => import("@uiw/react-markdown-preview").then((mod) => mod.default),
   {ssr: false}
 )
-
-const components = {
-  Button,
-};
 
 const PostAddPage = (props) => {
   const router = useRouter();
@@ -59,6 +58,8 @@ const PostAddPage = (props) => {
       });
     }
   }
+
+  const {data: catData, loading: loadingCat, error} = useSWR("/api/getCategories", fetcher);
 
   return (
     <MainLayout>
@@ -98,8 +99,8 @@ const PostAddPage = (props) => {
                 fullWidth
                 required
               >
-                {postCategoryDef.map((category) => (
-                  <MenuItem value={category.value} key={category.value}>{category.label}</MenuItem>
+                {catData?.data?.map((category) => (
+                  <MenuItem value={category.id} key={category.id}>{category.label}</MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -139,7 +140,7 @@ const PostAddPage = (props) => {
               return (
                 <MarkDown
                   options={{
-                    overrides: components,
+                    overrides: availableMdxComponents,
                   }}
                 >
                   {source}

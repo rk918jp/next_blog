@@ -20,6 +20,10 @@ import axios from "axios";
 import {DateTimePicker} from "@mui/x-date-pickers";
 import moment from "moment";
 import {useRouter} from "next/router";
+import MarkDown from "markdown-to-jsx";
+import {availableMdxComponents} from "../../../definitions/availableMdxComponents";
+import useSWR from "swr";
+import {fetcher} from "../../../util/fetcher";
 
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor"),
@@ -33,13 +37,13 @@ const MarkdownPreview = dynamic(
 
 const PostEditPage = (props) => {
   const router = useRouter();
-  const { query } = router;
+  const {query} = router;
   const [loading, setLoading] = React.useState(true);
 
   const [content, setContent] = React.useState();
   const [title, setTitle] = React.useState();
   const [slug, setSlug] = React.useState();
-  const [category, setCategory] = React.useState(postCategoryDef?.[0].value);
+  const [category, setCategory] = React.useState();
   const [publishedAt, setPublishedAt] = React.useState();
 
   const [message, setMessage] = React.useState();
@@ -79,15 +83,17 @@ const PostEditPage = (props) => {
       }).then((res) => {
         setLoading(false);
         const data = res.data.data;
-        setContent(data.contentMd);
-        setTitle(data.metadata.title);
-        setSlug(query.slug);
-        setCategory(query.category);
-        setPublishedAt(moment(data.metadata.publishedAt));
+        setContent(data.body);
+        setTitle(data.title);
+        setSlug(data.slug);
+        setCategory(data.categoryId);
+        setPublishedAt(moment(data.publishedAt));
       });
     }
-
   }, [query]);
+
+  const {data: catData, loading: loadingCat, error} = useSWR("/api/getCategories", fetcher);
+
   return (
     <MainLayout>
       {loading
@@ -129,8 +135,8 @@ const PostEditPage = (props) => {
                       fullWidth
                       disabled
                     >
-                      {postCategoryDef.map((category) => (
-                        <MenuItem value={category.value} key={category.value}>{category.label}</MenuItem>
+                      {catData?.data?.map((category) => (
+                        <MenuItem value={category.id} key={category.id}>{category.label}</MenuItem>
                       ))}
                     </Select>
                   </FormControl>
@@ -153,7 +159,7 @@ const PostEditPage = (props) => {
                     label={"Published at"}
                     onChange={setPublishedAt}
                     value={publishedAt}
-                    renderInput={(props) => <TextField {...props} fullWidth />}
+                    renderInput={(props) => <TextField {...props} fullWidth/>}
                     ampm={false}
                   />
                 </Grid>
@@ -165,6 +171,19 @@ const PostEditPage = (props) => {
                 value={content}
                 onChange={setContent}
                 height={800}
+                components={{
+                  preview: (source) => {
+                    return (
+                      <MarkDown
+                        options={{
+                          overrides: availableMdxComponents,
+                        }}
+                      >
+                        {source}
+                      </MarkDown>
+                    )
+                  }
+                }}
               />
             </div>
           </>
