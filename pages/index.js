@@ -100,7 +100,7 @@ const Home = ({categories}) => {
 
         </Container>
       ))}
-      <Dialog open={deletePost}>
+      <Dialog open={deletePost ?? false}>
         <DialogTitle>
           Remove post
         </DialogTitle>

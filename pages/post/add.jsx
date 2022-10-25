@@ -9,6 +9,8 @@ import axios from "axios";
 import {DateTimePicker} from "@mui/x-date-pickers";
 import moment from "moment";
 import {useRouter} from "next/router";
+import MarkDown from "markdown-to-jsx";
+
 
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor"),
@@ -19,6 +21,10 @@ const MarkdownPreview = dynamic(
   () => import("@uiw/react-markdown-preview").then((mod) => mod.default),
   {ssr: false}
 )
+
+const components = {
+  Button,
+};
 
 const PostAddPage = (props) => {
   const router = useRouter();
@@ -116,7 +122,7 @@ const PostAddPage = (props) => {
               label={"Published at"}
               onChange={setPublishedAt}
               value={publishedAt}
-              renderInput={(props) => <TextField {...props} fullWidth />}
+              renderInput={(props) => <TextField {...props} fullWidth/>}
               ampm={false}
             />
           </Grid>
@@ -128,6 +134,19 @@ const PostAddPage = (props) => {
           value={content}
           onChange={setContent}
           height={800}
+          components={{
+            preview: (source) => {
+              return (
+                <MarkDown
+                  options={{
+                    overrides: components,
+                  }}
+                >
+                  {source}
+                </MarkDown>
+              )
+            }
+          }}
         />
       </div>
     </MainLayout>
