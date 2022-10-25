@@ -7,7 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "mock-api": "json-server --watch data/db.json --port 8000"
+    "mock-api": "json-server --watch data/db.json --port 8000",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma format && prisma migrate deploy"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   },
   "dependencies": {
     "@emotion/cache": "^11.10.3",

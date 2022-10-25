@@ -9,3 +9,20 @@ datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
+
+model Category {
+  id    String @id @default(cuid())
+  label String
+  Post  Post[]
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  body        String
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  publishedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
