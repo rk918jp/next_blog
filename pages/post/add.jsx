@@ -4,7 +4,6 @@ import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import dynamic from "next/dynamic";
 import {Alert, Button, FormControl, Grid, InputLabel, MenuItem, Select, Snackbar, TextField} from "@mui/material";
-import {postCategoryDef} from "../../definitions/postDefinitions";
 import axios from "axios";
 import {DateTimePicker} from "@mui/x-date-pickers";
 import moment from "moment";
@@ -30,7 +29,7 @@ const PostAddPage = (props) => {
   const [content, setContent] = React.useState();
   const [title, setTitle] = React.useState();
   const [slug, setSlug] = React.useState();
-  const [category, setCategory] = React.useState(postCategoryDef?.[0].value);
+  const [category, setCategory] = React.useState();
   const [message, setMessage] = React.useState();
   const [publishedAt, setPublishedAt] = React.useState();
 

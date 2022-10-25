@@ -15,7 +15,6 @@ import {
   Snackbar,
   TextField
 } from "@mui/material";
-import {postCategoryDef} from "../../../definitions/postDefinitions";
 import axios from "axios";
 import {DateTimePicker} from "@mui/x-date-pickers";
 import moment from "moment";
