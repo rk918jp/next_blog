@@ -43,7 +43,7 @@ const PostAddPage = (props) => {
           title,
           category,
           slug,
-          publishedAt: (publishedAt ?? moment()).format("YYYY-MM-DD HH:mm"),
+          publishedAt: (publishedAt ?? moment()).toDate(),
         },
       });
       setMessage({

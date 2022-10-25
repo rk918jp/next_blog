@@ -1,14 +1,9 @@
 import React from "react";
 import {MainLayout} from "../components/MainLayout";
-import {getPostsByCategory} from "../util/mdxUtil";
-import {postCategoryDef} from "../definitions/postDefinitions";
 import {
   Alert,
-  Box,
   Button,
   Card,
-  CardActions,
-  CardContent,
   CardHeader,
   Container,
   Dialog,
@@ -22,8 +17,10 @@ import {
 import Link from "next/link";
 import moment from "moment";
 import axios from "axios";
+import useSWR from "swr";
+import {fetcher} from "../util/fetcher";
 
-const Home = ({categories}) => {
+const Home = () => {
   const [deletePost, setDeletePost] = React.useState();
   const [message, setMessage] = React.useState();
 
@@ -42,6 +39,8 @@ const Home = ({categories}) => {
     });
   };
 
+  const {data, loading, error} = useSWR("/api/getPostsByCategory", fetcher);
+
   return (
     <MainLayout>
       <Snackbar
@@ -54,7 +53,7 @@ const Home = ({categories}) => {
           <Alert severity={message.severity}>{message.value}</Alert>
         )}
       </Snackbar>
-      {categories.map((category) => (
+      {data.data.map((category) => (
         <Container sx={{mb: 5}} key={category.value}>
           <Typography variant={"h2"} sx={{fontSize: 30}}>
             {category.label}
@@ -63,14 +62,14 @@ const Home = ({categories}) => {
           {category.posts.length ? (
             <>
               {category.posts.map((post) => (
-                <Link href={post.path} key={post.path}>
+                <Link href={`/${category.id}/${post.slug}`} key={`/${category}/${post.slug}`}>
                   <Card sx={{my: 2}}>
                     <CardHeader
-                      title={post.metadata.title}
+                      title={post.title}
                       titleTypographyProps={{
                         variant: "h5"
                       }}
-                      subheader={moment(post.metadata.publishedAt).format("YYYY/MM/DD HH:mm")}
+                      subheader={moment(post.publishedAt).format("YYYY/MM/DD HH:mm")}
                       subheaderTypographyProps={{
                         variant: "subtitle2",
                       }}
@@ -118,22 +117,6 @@ const Home = ({categories}) => {
       </Dialog>
     </MainLayout>
   )
-}
-
-export async function getStaticProps(context) {
-  const postsByCategory = await Promise.all(postCategoryDef.map((category) => {
-    return getPostsByCategory(category.value);
-  }));
-
-  return {
-    props: {
-      categories: postCategoryDef.map((category, idx) => ({
-        ...category,
-        posts: postsByCategory[idx],
-      })),
-    },
-    revalidate: 1,
-  };
 }
 
 export default Home;
