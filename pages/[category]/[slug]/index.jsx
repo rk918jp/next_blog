@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import {
   Divider,
   Paper,
@@ -9,10 +9,46 @@ import {MainLayout} from "../../../components/MainLayout";
 import useSWR from "swr";
 import {fetcher} from "../../../util/fetcher";
 import {useRouter} from "next/router";
-import MarkDown from "markdown-to-jsx";
 import {availableMdxComponents} from "../../../definitions/availableMdxComponents";
+import * as provider from '@mdx-js/react'
+import {evaluate, nodeTypes} from '@mdx-js/mdx'
+import * as runtime from "react/jsx-runtime";
+import rehypeRaw from "rehype-raw";
+import {toc} from "rehype-toc";
 
-const PostPage = () => {
+/**
+ * MDX文字列をコンポーネントに変換するカスタムフック
+ * MDX内で使用出来るReactコンポーネントは、必ずMDXProviderで指定が必要
+ * @param content
+ * @return {*}
+ */
+const useMDX = (content) => {
+  const [exports, setExports] = useState({ default: runtime.Fragment });
+  useEffect(() => {
+    evaluate(content, {
+      ...provider,
+      ...runtime,
+      remarkPlugins: [],
+      rehypePlugins: [
+        [
+          toc,
+          {
+            passThrough: nodeTypes,
+            headings: ["h1", "h2"],
+          }
+        ],
+      ],
+    })
+      .then((exports) => {
+        setExports(exports);
+      })
+  }, [content]);
+
+  return exports?.default;
+}
+
+
+const Post = () => {
   const router = useRouter();
   const {category, slug} = router.query;
 
@@ -20,6 +56,11 @@ const PostPage = () => {
     category && slug ? ["/api/getPost", {category, slug}] : undefined,
     fetcher
   );
+
+  // DEBUG
+  // const body = "## heading \n \n <div >red</div> \n \n <li></li> \n \n <Button>test</Button>";
+
+  const Content = useMDX(data?.data?.body);
 
   return (
     <MainLayout>
@@ -36,17 +77,19 @@ const PostPage = () => {
               {data.data.title}
             </Typography>
             <Divider sx={{my: 1}}/>
-            <MarkDown
-              options={{
-                overrides: availableMdxComponents,
-              }}
-            >
-              {data.data.body}
-            </MarkDown>
+            <Content/>
           </>
         )}
       </Paper>
     </MainLayout>
+  )
+}
+
+const PostPage = () => {
+  return (
+    <provider.MDXProvider components={availableMdxComponents}>
+      <Post />
+    </provider.MDXProvider>
   )
 }
 
