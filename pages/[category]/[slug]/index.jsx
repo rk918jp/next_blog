@@ -10,42 +10,8 @@ import useSWR from "swr";
 import {fetcher} from "../../../util/fetcher";
 import {useRouter} from "next/router";
 import {availableMdxComponents} from "../../../definitions/availableMdxComponents";
-import * as provider from '@mdx-js/react'
-import {evaluate, nodeTypes} from '@mdx-js/mdx'
-import * as runtime from "react/jsx-runtime";
-import rehypeRaw from "rehype-raw";
-import {toc} from "rehype-toc";
-
-/**
- * MDX文字列をコンポーネントに変換するカスタムフック
- * MDX内で使用出来るReactコンポーネントは、必ずMDXProviderで指定が必要
- * @param content
- * @return {*}
- */
-const useMDX = (content) => {
-  const [exports, setExports] = useState({ default: runtime.Fragment });
-  useEffect(() => {
-    evaluate(content, {
-      ...provider,
-      ...runtime,
-      remarkPlugins: [],
-      rehypePlugins: [
-        [
-          toc,
-          {
-            passThrough: nodeTypes,
-            headings: ["h1", "h2"],
-          }
-        ],
-      ],
-    })
-      .then((exports) => {
-        setExports(exports);
-      })
-  }, [content]);
-
-  return exports?.default;
-}
+import {MDXProvider} from '@mdx-js/react'
+import {useMDX} from "../../../hooks/useMDX";
 
 
 const Post = () => {
@@ -87,9 +53,9 @@ const Post = () => {
 
 const PostPage = () => {
   return (
-    <provider.MDXProvider components={availableMdxComponents}>
+    <MDXProvider components={availableMdxComponents}>
       <Post />
-    </provider.MDXProvider>
+    </MDXProvider>
   )
 }
 
