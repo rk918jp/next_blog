@@ -30,6 +30,9 @@ export const useMDX = (content) => {
       .then((exports) => {
         setExports(exports);
       })
+      .catch((e) => {
+        // NOTE: Do nothing
+      })
   }, [content]);
 
   return exports?.default;
