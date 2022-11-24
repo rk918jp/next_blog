@@ -138,7 +138,7 @@ export const MDXEditor = ({
         // TODO: hookでユーザー情報を取得
         create_emplid: "",
         tags: tags?.split(",").map((str) => str.trim()),
-        create_datetime: (publishedAt ?? moment()).toDate(),
+        published_at: (publishedAt ?? moment()).toDate(),
         open_range: openRange,
       },
     }
@@ -184,6 +184,7 @@ export const MDXEditor = ({
           >
             サムネイルを設定
           </Button>
+          {/* TODO: 下書き保存 */}
           <Button
             variant={"contained"}
             onClick={handleClickSave}
