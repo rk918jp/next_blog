@@ -1,6 +1,20 @@
-import {Alert, Button, FormControl, Grid, InputLabel, MenuItem, Select, Snackbar, TextField} from "@mui/material";
+import {
+  Alert,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogActions,
+  DialogTitle,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  Snackbar,
+  TextField,
+  InputAdornment,
+} from "@mui/material";
 import {DateTimePicker} from "@mui/x-date-pickers";
-import MarkDown from "markdown-to-jsx";
 import {availableMdxComponents} from "../../definitions/availableMdxComponents";
 import React from "react";
 import axios from "axios";
@@ -13,13 +27,57 @@ import {fetcher} from "../../util/fetcher";
 import {useMDX} from "../../hooks/useMDX";
 import {MDXProvider} from "@mdx-js/react";
 
+const defRangeFlag = [
+  {
+    value: 0,
+    label: "非公開",
+  },
+  {
+    value: 1,
+    label: "公開範囲制限",
+  },
+  {
+    value: 2,
+    label: "全公開",
+  },
+];
+
+const defPaidFlag = [
+  {
+    value: 1,
+    label: "有料",
+  },
+  {
+    value: 0,
+    label: "無料",
+  },
+];
+
+const defRestrictType = [
+  {
+    value: 1,
+    label: "ユニット",
+    codeKey: "will_unit_code",
+  },
+  {
+    value: 2,
+    label: "組織",
+    codeKey: "soshiki_code",
+  },
+  {
+    value: 3,
+    label: "プロジェクト",
+    codeKey: "project_id",
+  },
+  {
+    value: 4,
+    label: "個人",
+    codeKey: "emplid",
+  },
+];
+
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor"),
-  {ssr: false}
-)
-
-const MarkdownPreview = dynamic(
-  () => import("@uiw/react-markdown-preview").then((mod) => mod.default),
   {ssr: false}
 )
 
@@ -38,10 +96,24 @@ export const MDXEditor = ({
 }) => {
   const [content, setContent] = React.useState();
   const [title, setTitle] = React.useState();
-  const [slug, setSlug] = React.useState();
+  const [mdxId, setMdxId] = React.useState();
   const [category, setCategory] = React.useState();
   const [message, setMessage] = React.useState();
   const [publishedAt, setPublishedAt] = React.useState();
+  const [ibNo, setIbNo] = React.useState();
+  const [overview, setOverview] = React.useState();
+  const [rangeFlag, setRangeFlag] = React.useState();
+  const [paidFlag, setPaidFlag] = React.useState();
+  const [will, setWill] = React.useState();
+  const [tag, setTag] = React.useState();
+  // サムネイルモーダル
+  const [openThumbnail, setOpenThumbnail] = React.useState(false);
+  const [thumbnailContentDraft, setThumbnailContentDraft] = React.useState();
+  const [thumbnailContent, setThumbnailContent] = React.useState();
+  // 公開範囲詳細設定
+  const [openRestrict, setOpenRestrict] = React.useState(false);
+  const [restrictType, setRestrictType] = React.useState();
+  const [restrictCode, setRestrictCode] = React.useState();
 
   const handleClickSave = async () => {
     try {
@@ -50,7 +122,7 @@ export const MDXEditor = ({
         metadata: {
           title,
           category,
-          slug,
+          mdxId,
           publishedAt: (publishedAt ?? moment()).toDate(),
         },
       });
@@ -63,7 +135,7 @@ export const MDXEditor = ({
           content,
           title,
           category,
-          slug,
+          mdxId,
           publishedAt: (publishedAt ?? moment()).toDate(),
         });
       }
@@ -92,27 +164,39 @@ export const MDXEditor = ({
       </Snackbar>
       <Grid sx={{mb: 2}}>
         <Grid sx={{display: "flex", justifyContent: "flex-end", mb: 2}}>
-          <Button variant={"contained"} onClick={handleClickSave}>Save</Button>
+          <Button
+            variant={"contained"}
+            onClick={() => setOpenThumbnail(true)}
+            sx={{marginLeft: 2}}
+          >
+            サムネイルを設定
+          </Button>
+          <Button
+            variant={"contained"}
+            onClick={handleClickSave}
+            sx={{marginLeft: 2}}
+          >保存</Button>
         </Grid>
-        <TextField
-          id="title"
-          label="Title"
-          fullWidth
-          style={{marginBottom: 10}}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-        <Grid container spacing={1}>
+        <Grid container spacing={2}>
+          <Grid item sm={12}>
+            <TextField
+              id="title"
+              label="タイトル"
+              fullWidth
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+          </Grid>
           <Grid item sm={6}>
             <FormControl fullWidth>
-              <InputLabel id="category-label" required>Category</InputLabel>
+              <InputLabel id="category-label" required>カテゴリ</InputLabel>
               <Select
                 labelId="category-label"
                 id="category"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                label="Category"
+                label="カテゴリ"
                 fullWidth
                 required
               >
@@ -124,39 +208,256 @@ export const MDXEditor = ({
           </Grid>
           <Grid item sm={6}>
             <TextField
-              id="slug"
-              label="Slug"
+              id="mdxId"
+              label="ID"
               fullWidth
-              style={{marginBottom: 10}}
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              required
+              value={mdxId}
+              onChange={(e) => setMdxId(e.target.value)}
             />
           </Grid>
-        </Grid>
-        <Grid container spacing={1}>
+          <Grid item sm={6}>
+            <TextField
+              id="tag"
+              label="タグ"
+              fullWidth
+              value={tag}
+              onChange={(e) => setTag(e.target.value)}
+            />
+          </Grid>
           <Grid item sm={6}>
             <DateTimePicker
-              label={"Published at"}
+              label={"投稿日時"}
               onChange={setPublishedAt}
               value={publishedAt}
               renderInput={(props) => <TextField {...props} fullWidth/>}
               ampm={false}
             />
           </Grid>
+          <Grid item sm={6}>
+            <FormControl fullWidth>
+              <InputLabel id="paid-flag-label" required>料金設定</InputLabel>
+              <Select
+                labelId="paid-flag-label"
+                id="paid-flag"
+                value={paidFlag}
+                onChange={(e) => setPaidFlag(e.target.value)}
+                label="PaidFlag"
+                fullWidth
+              >
+                {defPaidFlag.map((item) => (
+                  <MenuItem value={item.value} key={item.value}>{item.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item sm={6}>
+            <TextField
+              id="will"
+              label="Will"
+              fullWidth
+              value={will}
+              onChange={(e) => setWill(e.target.value)}
+              required={Boolean(paidFlag)}
+              InputProps={{
+                endAdornment: <InputAdornment position={"end"}>will</InputAdornment>
+              }}
+            />
+          </Grid>
+          <Grid item sm={6}>
+            <TextField
+              id="ib_no"
+              label="IB番号"
+              fullWidth
+              value={ibNo}
+              onChange={(e) => setIbNo(e.target.value)}
+            />
+          </Grid>
+          <Grid item sm={6}>
+            <FormControl fullWidth>
+              <InputLabel id="range-flag-label" required>公開範囲</InputLabel>
+              <Select
+                labelId="range-flag-label"
+                id="range-flag"
+                value={rangeFlag}
+                onChange={(e) => setRangeFlag(e.target.value)}
+                label="RangeFlag"
+                fullWidth
+                required
+              >
+                {defRangeFlag.map((item) => (
+                  <MenuItem value={item.value} key={item.value}>{item.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid
+            item
+            sm={12}
+            sx={{display: "flex", justifyContent: "flex-end"}}
+          >
+            <Button variant={"outlined"} onClick={() => setOpenRestrict(true)}>
+              公開範囲詳細設定
+            </Button>
+          </Grid>
+          <Grid item sm={12}>
+            <TextField
+              id="overview"
+              label="Overview"
+              fullWidth
+              value={overview}
+              onChange={(e) => setOverview(e.target.value)}
+            />
+          </Grid>
+          <Grid item sm={12}>
+            <div data-color-mode="light">
+              <div className="wmde-markdown-var"/>
+              <MDEditor
+                value={content}
+                onChange={setContent}
+                height={500}
+                components={{
+                  preview: (source) => <Preview source={source} />
+                }}
+              />
+            </div>
+          </Grid>
         </Grid>
       </Grid>
-      <div data-color-mode="light">
-        <div className="wmde-markdown-var"/>
-        <MDEditor
-          value={content}
-          onChange={setContent}
-          height={200}
-          components={{
-            preview: (source) => <Preview source={source} />
-          }}
-        />
-      </div>
+      <Dialog
+        open={openThumbnail}
+        onClose={() => {
+          setThumbnailContentDraft(thumbnailContent);
+          setOpenThumbnail(false);
+        }}
+        maxWidth={"800px"}
+      >
+        <DialogTitle>
+          サムネイルを設定
+        </DialogTitle>
+        <DialogContent sx={{width: 800}}>
+          <Grid container>
+            <Grid
+              item
+              sm={12}
+              textAlign={"center"}
+              sx={{
+                borderWidth: 1,
+                borderStyle: "dashed",
+                height: 200,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderColor: "#8d91cc",
+                backgroundColor: "#fafafa",
+              }}
+            >
+              画像をアップロード(仮)
+            </Grid>
+            <Grid item sm={12} sx={{marginTop: 2}}>
+              <div data-color-mode="light">
+                <div className="wmde-markdown-var"/>
+                <MDEditor
+                  value={thumbnailContentDraft}
+                  onChange={setThumbnailContentDraft}
+                  height={500}
+                  components={{
+                    preview: (source) => <Preview source={source} />
+                  }}
+                />
+              </div>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setThumbnailContentDraft(null);
+              setOpenThumbnail(false);
+            }}
+            variant={"outlined"}
+            color={"error"}
+          >
+            キャンセル
+          </Button>
+          <Button
+            onClick={() => {
+              setThumbnailContent(thumbnailContentDraft);
+              setOpenThumbnail(false);
+            }}
+            variant={"contained"}
+          >
+            確定
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={openRestrict}
+        onClose={() => {
+          setOpenRestrict(false);
+        }}
+      >
+        <DialogTitle>
+          公開範囲詳細設定
+        </DialogTitle>
+        <DialogContent sx={{width: 600}}>
+          <Grid container spacing={1}>
+            <Grid item sm={12}>
+              <FormControl fullWidth sx={{marginTop: 2}}>
+                <InputLabel id="range-flag-label" required>公開範囲</InputLabel>
+                <Select
+                  disabled
+                  labelId="range-flag-label"
+                  id="range-flag"
+                  value={rangeFlag}
+                  label="RangeFlag"
+                  fullWidth
+                >
+                  {defRangeFlag.map((item) => (
+                    <MenuItem value={item.value} key={item.value}>{item.label}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item sm={6} sx={{marginTop: 2}}>
+              <FormControl fullWidth>
+                <InputLabel id="restrict-type-label" required>公開対象</InputLabel>
+                <Select
+                  labelId="restrict-type-label"
+                  id="restrict-type"
+                  value={restrictType}
+                  onChange={(e) => setRestrictType(e.target.value)}
+                  label="RestrictType"
+                  fullWidth
+                >
+                  {defRestrictType.map((item) => (
+                    <MenuItem value={item.value} key={item.value}>{item.label}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item sm={6} sx={{marginTop: 2}}>
+              <TextField
+                id="restrict-code"
+                label="対象コード"
+                fullWidth
+                value={restrictCode}
+                onChange={(e) => setRestrictCode(e.target.value)}
+                type={"number"}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setOpenRestrict(false);
+            }}
+          >
+            閉じる
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   )
 }
+
