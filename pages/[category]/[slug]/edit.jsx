@@ -19,18 +19,14 @@ import axios from "axios";
 import {DateTimePicker} from "@mui/x-date-pickers";
 import moment from "moment";
 import {useRouter} from "next/router";
-import MarkDown from "markdown-to-jsx";
 import {availableMdxComponents} from "../../../definitions/availableMdxComponents";
 import useSWR from "swr";
 import {fetcher} from "../../../util/fetcher";
+import {useMDX} from "../../../hooks/useMDX";
+import {MDXProvider} from '@mdx-js/react'
 
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor"),
-  {ssr: false}
-)
-
-const MarkdownPreview = dynamic(
-  () => import("@uiw/react-markdown-preview").then((mod) => mod.default),
   {ssr: false}
 )
 
@@ -173,13 +169,9 @@ const PostEditPage = (props) => {
                 components={{
                   preview: (source) => {
                     return (
-                      <MarkDown
-                        options={{
-                          overrides: availableMdxComponents,
-                        }}
-                      >
-                        {source}
-                      </MarkDown>
+                      <MDXProvider components={availableMdxComponents}>
+                        <MDXPreview source={source} />
+                      </MDXProvider>
                     )
                   }
                 }}
@@ -189,6 +181,13 @@ const PostEditPage = (props) => {
         )
       }
     </MainLayout>
+  )
+}
+
+const MDXPreview = ({source}) => {
+  const Content = useMDX(source);
+  return (
+    <Content />
   )
 }
 
