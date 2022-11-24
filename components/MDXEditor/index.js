@@ -94,18 +94,19 @@ export const MDXEditor = ({
   defaultValue,
   onSubmit,
 }) => {
+  const [message, setMessage] = React.useState();
+
   const [content, setContent] = React.useState();
   const [title, setTitle] = React.useState();
   const [mdxId, setMdxId] = React.useState();
   const [category, setCategory] = React.useState();
-  const [message, setMessage] = React.useState();
   const [publishedAt, setPublishedAt] = React.useState();
   const [ibNo, setIbNo] = React.useState();
   const [overview, setOverview] = React.useState();
   const [rangeFlag, setRangeFlag] = React.useState();
   const [paidFlag, setPaidFlag] = React.useState();
   const [will, setWill] = React.useState();
-  const [tag, setTag] = React.useState();
+  const [tags, setTags] = React.useState();
   // サムネイルモーダル
   const [openThumbnail, setOpenThumbnail] = React.useState(false);
   const [thumbnailContentDraft, setThumbnailContentDraft] = React.useState();
@@ -116,28 +117,40 @@ export const MDXEditor = ({
   const [restrictCode, setRestrictCode] = React.useState();
 
   const handleClickSave = async () => {
+    const restrictTypeKey = defRestrictType.find((item) => item.value === restrictType)
+    const openRange = restrictTypeKey ? {
+      restrict_type: restrictType,
+      [restrictTypeKey]: restrictCode,
+    } : {};
+    const data = {
+      content,
+      metadata: {
+        mdx_id: mdxId,
+        category_id: category,
+        title,
+        overview: overview,
+        ib_no: ibNo,
+        thumbnail_content: thumbnailContent,
+        prg_id: "doc_docs",
+        range_flg: rangeFlag,
+        paid_flg: paidFlag,
+        will,
+        // TODO: hookでユーザー情報を取得
+        create_emplid: "",
+        tags: tags?.split(",").map((str) => str.trim()),
+        carete_datetime: (publishedAt ?? moment()).toDate(),
+        open_range: openRange,
+      },
+    }
+
     try {
-      const res = await axios.post("/api/createPost", {
-        content,
-        metadata: {
-          title,
-          category,
-          mdxId,
-          publishedAt: (publishedAt ?? moment()).toDate(),
-        },
-      });
+      const res = await axios.post("/api/createPost", data);
       setMessage({
         value: "Success",
         severity: "success",
       });
       if (onSubmit) {
-        onSubmit({
-          content,
-          title,
-          category,
-          mdxId,
-          publishedAt: (publishedAt ?? moment()).toDate(),
-        });
+        onSubmit(data);
       }
 
     } catch (e) {
@@ -218,10 +231,10 @@ export const MDXEditor = ({
           <Grid item sm={6}>
             <TextField
               id="tag"
-              label="タグ"
+              label="タグ(カンマ区切り)"
               fullWidth
-              value={tag}
-              onChange={(e) => setTag(e.target.value)}
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
             />
           </Grid>
           <Grid item sm={6}>
@@ -295,9 +308,11 @@ export const MDXEditor = ({
             sm={12}
             sx={{display: "flex", justifyContent: "flex-end"}}
           >
-            <Button variant={"outlined"} onClick={() => setOpenRestrict(true)}>
-              公開範囲詳細設定
-            </Button>
+            {rangeFlag === 1 && (
+              <Button variant={"outlined"} onClick={() => setOpenRestrict(true)}>
+                公開範囲詳細設定
+              </Button>
+            )}
           </Grid>
           <Grid item sm={12}>
             <TextField
