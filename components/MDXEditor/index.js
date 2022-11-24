@@ -117,7 +117,7 @@ export const MDXEditor = ({
   const [restrictCode, setRestrictCode] = React.useState();
 
   const handleClickSave = async () => {
-    const restrictTypeKey = defRestrictType.find((item) => item.value === restrictType)
+    const restrictTypeKey = defRestrictType.find((item) => item.value === restrictType)?.codeKey;
     const openRange = restrictTypeKey ? {
       restrict_type: restrictType,
       [restrictTypeKey]: restrictCode,
@@ -138,7 +138,7 @@ export const MDXEditor = ({
         // TODO: hookでユーザー情報を取得
         create_emplid: "",
         tags: tags?.split(",").map((str) => str.trim()),
-        carete_datetime: (publishedAt ?? moment()).toDate(),
+        create_datetime: (publishedAt ?? moment()).toDate(),
         open_range: openRange,
       },
     }
@@ -277,6 +277,7 @@ export const MDXEditor = ({
             />
           </Grid>
           <Grid item sm={6}>
+            {/* TODO: 検索してselect 件数が多い */}
             <TextField
               id="ib_no"
               label="IB番号"
@@ -350,6 +351,7 @@ export const MDXEditor = ({
           サムネイルを設定
         </DialogTitle>
         <DialogContent sx={{width: 800}}>
+          {/* TODO: ラジオボタンで画像/mdxを選択 */}
           <Grid container>
             <Grid
               item
@@ -451,6 +453,7 @@ export const MDXEditor = ({
               </FormControl>
             </Grid>
             <Grid item sm={6} sx={{marginTop: 2}}>
+              {/* TODO: 検索してselect */}
               <TextField
                 id="restrict-code"
                 label="対象コード"
