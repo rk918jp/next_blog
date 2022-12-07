@@ -12,7 +12,8 @@ import {
   Typography
 } from "@mui/material";
 import Link from "next/link";
-import {Add, Dashboard} from "@mui/icons-material";
+import Add from "@mui/icons-material/Add";
+import Dashboard from "@mui/icons-material/Dashboard";
 
 export const MainLayout = ({children}) => {
   return (
