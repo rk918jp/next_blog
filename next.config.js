@@ -7,7 +7,7 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   experimental: {
-    exmExternals: "loose",
+    esmExternals: "loose",
   }
 }
 
