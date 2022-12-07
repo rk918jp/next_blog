@@ -81,11 +81,17 @@ const MDEditor = dynamic(
   {ssr: false}
 )
 
-const Preview = ({source}) => {
+const PreviewInner = ({source}) => {
   const Content = useMDX(source);
   return (
+    <Content/>
+  )
+}
+
+const Preview = ({source}) => {
+  return (
     <MDXProvider components={availableMdxComponents}>
-      <Content />
+      <PreviewInner source={source}/>
     </MDXProvider>
   )
 }
@@ -333,7 +339,7 @@ export const MDXEditor = ({
                 onChange={setContent}
                 height={500}
                 components={{
-                  preview: (source) => <Preview source={source} />
+                  preview: (source) => <Preview source={source}/>
                 }}
               />
             </div>
@@ -379,7 +385,7 @@ export const MDXEditor = ({
                   onChange={setThumbnailContentDraft}
                   height={500}
                   components={{
-                    preview: (source) => <Preview source={source} />
+                    preview: (source) => <Preview source={source}/>
                   }}
                 />
               </div>
