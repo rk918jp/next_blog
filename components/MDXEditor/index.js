@@ -13,6 +13,7 @@ import {
   Snackbar,
   TextField,
   InputAdornment,
+  Box,
 } from "@mui/material";
 import {DateTimePicker} from "@mui/x-date-pickers";
 import {availableMdxComponents} from "../../definitions/availableMdxComponents";
@@ -26,6 +27,7 @@ import useSWR from "swr";
 import {fetcher} from "../../util/fetcher";
 import {useMDX} from "../../hooks/useMDX";
 import {MDXProvider} from "@mdx-js/react";
+import {useDropzone} from "react-dropzone";
 
 const defRangeFlag = [
   {
@@ -115,6 +117,25 @@ export const MDXEditor = ({
   const [openRestrict, setOpenRestrict] = React.useState(false);
   const [restrictType, setRestrictType] = React.useState();
   const [restrictCode, setRestrictCode] = React.useState();
+
+  const {getRootProps, getInputProps, open} = useDropzone({
+    // MDEditorをクリックした際にファイルブラウザが出るのを抑制
+    noClick: true,
+    onDrop: (files) => {
+      const formData = new FormData();
+      formData.append("files", files[0]);
+      // APIに画像を送信
+      axios.post("/api/images/upload", formData)
+        .then((res) => {
+          // URLをMDの中に埋め込む
+          const url = res.data.url;
+          const caretPosition = document.getElementById("md-editor").selectionStart;
+          const before = (content ?? "").slice(0, caretPosition);
+          const after = (content ?? "").slice(caretPosition);
+          setContent(before + `![](${url})` + after);
+        })
+    }
+  });
 
   const handleClickSave = async () => {
     const restrictTypeKey = defRestrictType.find((item) => item.value === restrictType)?.codeKey;
@@ -326,9 +347,18 @@ export const MDXEditor = ({
             />
           </Grid>
           <Grid item sm={12}>
-            <div data-color-mode="light">
+            <Box>
+              <Button onClick={open}>
+                アップロード(ツールバーの中に移動)
+              </Button>
+            </Box>
+            <div data-color-mode="light" {...getRootProps()}>
+              <input {...getInputProps()} />
               <div className="wmde-markdown-var"/>
               <MDEditor
+                textareaProps={{
+                  id: "md-editor"
+                }}
                 value={content}
                 onChange={setContent}
                 height={500}
