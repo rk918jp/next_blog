@@ -100,18 +100,16 @@ const MindMapPage = (props) => {
 }
 
 const Flow = () => {
+  const reactFlowWrapper = useRef(null);
+  const connectingNodeId = useRef(null);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const {getIntersectingNodes} = useReactFlow();
+  const {getIntersectingNodes, project} = useReactFlow();
   const [copyNode, setCopyNode] = useState();
   // TODO: keyPress hookが効かないことがあるので載せ替え
   const newPressed = useKeyPress("n");
   const copyPressed = useKeyPress("Meta+c");
   const pastePressed = useKeyPress("Meta+v");
-
-  const onConnect = useCallback((params) =>
-      setEdges((eds) => addEdge(params, eds))
-    , []);
   const selectedNode = useMemo(() => {
     return nodes?.find((n) => n.selected);
   }, [nodes]);
@@ -119,11 +117,15 @@ const Flow = () => {
     return edges?.find((e) => e.selected);
   }, [edges]);
 
+  const getId = () => {
+    return String(Date.now());
+  }
+
   // add
   useEffect(() => {
     if (newPressed) {
       setNodes((nodes) => nodes.concat({
-          id: String(Date.now()),
+          id: getId(),
           data: {
             label: "test",
           },
@@ -145,7 +147,7 @@ const Flow = () => {
     if (pastePressed && copyNode) {
       setNodes((nodes) => nodes.concat({
           ...copyNode,
-          id: String(Date.now()),
+          id: getId(),
           selected: false,
           position: {
             x: selectedNode.position.x + 10,
@@ -213,53 +215,87 @@ const Flow = () => {
     );
   }, [nodes]);
 
+  const onConnect = useCallback((params) =>
+      setEdges((eds) => addEdge(params, eds))
+    , []);
+
+  const onConnectStart = useCallback((_, {nodeId}) => {
+    connectingNodeId.current = nodeId;
+  }, []);
+
+  const onConnectEnd = useCallback(
+    (event) => {
+      const targetIsPane = event.target.classList.contains('react-flow__pane');
+      if (targetIsPane) {
+        const {top, left} = reactFlowWrapper.current.getBoundingClientRect();
+        const id = getId();
+        const newNode = {
+          id,
+          position: project({x: event.clientX - left - 75, y: event.clientY - top}),
+          data: {label: "Node"},
+        };
+
+        setNodes((nds) => nds.concat(newNode));
+        setEdges((eds) => eds.concat({id, source: connectingNodeId.current, target: id}));
+      }
+    },
+    [project]
+  );
+
   return (
-    <ReactFlow
-      fitView
-      attributionPosition="top-right"
-      nodeTypes={nodeTypes}
-      onNodesChange={onNodesChange}
-      onNodeDrag={onNodeDrag}
-      onNodeDragStop={onNodeDragStop}
-      onEdgesChange={onEdgesChange}
-      onEdgeUpdate={onEdgeUpdate}
-      onEdgeUpdateStart={onEdgeUpdateStart}
-      onEdgeUpdateEnd={onEdgeUpdateEnd}
-      nodes={nodes}
-      edges={edges}
-      onConnect={onConnect}
+    <Box
+      sx={{width: "100%", height: "100%"}}
+      ref={reactFlowWrapper}
     >
-      <Panel position="top-right">
-        <Box sx={{m: 1, background: "#fff"}}>
-          <TextField
-            label={"Label"}
-            size={"small"}
-            value={selectedNode?.data.label ?? selectedEdge?.label ?? ""}
-            onChange={(event) => {
-              if (selectedNode) {
-                setNodes(ns => ns.map(n => n.id === selectedNode.id ? {
-                  ...n,
-                  data: {
-                    ...n.data,
+      <ReactFlow
+        fitView
+        attributionPosition="top-right"
+        nodeTypes={nodeTypes}
+        onNodesChange={onNodesChange}
+        onNodeDrag={onNodeDrag}
+        onNodeDragStop={onNodeDragStop}
+        onEdgesChange={onEdgesChange}
+        onEdgeUpdate={onEdgeUpdate}
+        onEdgeUpdateStart={onEdgeUpdateStart}
+        onEdgeUpdateEnd={onEdgeUpdateEnd}
+        nodes={nodes}
+        edges={edges}
+        onConnect={onConnect}
+        onConnectStart={onConnectStart}
+        onConnectEnd={onConnectEnd}
+      >
+        <Panel position="top-right">
+          <Box sx={{m: 1, background: "#fff"}}>
+            <TextField
+              label={"Label"}
+              size={"small"}
+              value={selectedNode?.data.label ?? selectedEdge?.label ?? ""}
+              onChange={(event) => {
+                if (selectedNode) {
+                  setNodes(ns => ns.map(n => n.id === selectedNode.id ? {
+                    ...n,
+                    data: {
+                      ...n.data,
+                      label: event.target.value,
+                    },
+                  } : n));
+                } else if (selectedEdge) {
+                  setEdges(es => es.map(e => e.id === selectedEdge.id ? {
+                    ...e,
                     label: event.target.value,
-                  },
-                } : n));
-              } else if (selectedEdge) {
-                setEdges(es => es.map(e => e.id === selectedEdge.id ? {
-                  ...e,
-                  label: event.target.value,
-                } : e));
-              }
-            }}
-          />
-        </Box>
-      </Panel>
-      <MiniMap style={{
-        height: 120,
-      }} zoomable pannable/>
-      <Controls/>
-      <Background color={"#aaa"}/>
-    </ReactFlow>
+                  } : e));
+                }
+              }}
+            />
+          </Box>
+        </Panel>
+        <MiniMap style={{
+          height: 120,
+        }} zoomable pannable/>
+        <Controls/>
+        <Background color={"#aaa"}/>
+      </ReactFlow>
+    </Box>
   )
 }
 
