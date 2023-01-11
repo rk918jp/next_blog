@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState, useRef, memo} from "react";
 import {MainLayout} from "../components/MainLayout";
-import {Paper} from "@mui/material";
+import {Paper, Box, TextField} from "@mui/material";
 import ReactFlow, {
   addEdge,
   Background,
@@ -14,6 +14,7 @@ import ReactFlow, {
   ReactFlowProvider,
   Handle,
   Position,
+  Panel,
 } from "reactflow";
 import 'reactflow/dist/style.css';
 
@@ -112,8 +113,11 @@ const Flow = () => {
       setEdges((eds) => addEdge(params, eds))
     , []);
   const selectedNode = useMemo(() => {
-    return nodes?.find((node) => node.selected);
+    return nodes?.find((n) => n.selected);
   }, [nodes]);
+  const selectedEdge = useMemo(() => {
+    return edges?.find((e) => e.selected);
+  }, [edges]);
 
   // add
   useEffect(() => {
@@ -225,6 +229,31 @@ const Flow = () => {
       edges={edges}
       onConnect={onConnect}
     >
+      <Panel position="top-right">
+        <Box sx={{m: 1, background: "#fff"}}>
+          <TextField
+            label={"Label"}
+            size={"small"}
+            value={selectedNode?.data.label ?? selectedEdge?.label ?? ""}
+            onChange={(event) => {
+              if (selectedNode) {
+                setNodes(ns => ns.map(n => n.id === selectedNode.id ? {
+                  ...n,
+                  data: {
+                    ...n.data,
+                    label: event.target.value,
+                  },
+                } : n));
+              } else if (selectedEdge) {
+                setEdges(es => es.map(e => e.id === selectedEdge.id ? {
+                  ...e,
+                  label: event.target.value,
+                } : e));
+              }
+            }}
+          />
+        </Box>
+      </Panel>
       <MiniMap style={{
         height: 120,
       }} zoomable pannable/>
