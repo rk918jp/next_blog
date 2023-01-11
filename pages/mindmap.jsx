@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState, useRef, memo} from "react";
 import {MainLayout} from "../components/MainLayout";
-import {Paper, Box, TextField} from "@mui/material";
+import {Paper, Box, TextField, ClickAwayListener} from "@mui/material";
 import ReactFlow, {
   addEdge,
   Background,
@@ -17,6 +17,10 @@ import ReactFlow, {
   Panel,
 } from "reactflow";
 import 'reactflow/dist/style.css';
+import {SketchPicker} from "react-color";
+
+const DefaultBgColor = "#ffffff";
+const DefaultColor = "#222222";
 
 // Custom Node
 const ContainerNode = ({
@@ -106,6 +110,8 @@ const Flow = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const {getIntersectingNodes, project} = useReactFlow();
   const [copyNode, setCopyNode] = useState();
+  const [openBgColorPicker, setOpenBgColorPicker] = useState(false);
+  const [openColorPicker, setOpenColorPicker] = useState(false);
   // TODO: keyPress hookが効かないことがあるので載せ替え
   const newPressed = useKeyPress("n");
   const copyPressed = useKeyPress("Meta+c");
@@ -265,10 +271,19 @@ const Flow = () => {
         onConnectEnd={onConnectEnd}
       >
         <Panel position="top-right">
-          <Box sx={{m: 1, background: "#fff"}}>
+          <Box
+            sx={{
+              m: 1,
+              background: "#fff",
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            }}
+          >
             <TextField
               label={"Label"}
               size={"small"}
+              disabled={!selectedNode && !selectedEdge}
               value={selectedNode?.data.label ?? selectedEdge?.label ?? ""}
               onChange={(event) => {
                 if (selectedNode) {
@@ -287,6 +302,90 @@ const Flow = () => {
                 }
               }}
             />
+            <ClickAwayListener onClickAway={() => {
+              setOpenBgColorPicker(false);
+            }}>
+              <Box>
+                <TextField
+                  label={"Background"}
+                  size={"small"}
+                  sx={{width: 220}}
+                  disabled={!selectedNode}
+                  value={selectedNode ? selectedNode?.style?.backgroundColor ?? DefaultBgColor : ""}
+                  onFocus={() => {
+                    if (selectedNode) {
+                      setOpenBgColorPicker(true);
+                    }
+                  }}
+                />
+                {openBgColorPicker && (
+                  <SketchPicker
+                    styles={{
+                      picker: {
+                        zIndex: 1,
+                        width: 220,
+                        marginTop: 10,
+                        display: openBgColorPicker ? "block" : "none",
+                      }
+                    }}
+                    color={selectedNode?.style?.backgroundColor ?? DefaultBgColor}
+                    onChange={(color) => {
+                      if (selectedNode) {
+                        setNodes(ns => ns.map(n => n.id === selectedNode.id ? {
+                          ...n,
+                          style: {
+                            ...n.style,
+                            backgroundColor: color.hex,
+                          }
+                        } : n));
+                      }
+                    }}
+                  />
+                )}
+              </Box>
+            </ClickAwayListener>
+            <ClickAwayListener onClickAway={() => {
+              setOpenColorPicker(false);
+            }}>
+              <Box>
+                <TextField
+                  label={"Color"}
+                  size={"small"}
+                  sx={{width: 220}}
+                  disabled={!selectedNode}
+                  value={selectedNode ? selectedNode?.style?.color ?? DefaultColor : ""}
+                  onFocus={() => {
+                    if (selectedNode) {
+                      setOpenColorPicker(true);
+                    }
+                  }}
+                />
+                {openColorPicker && (
+                  <SketchPicker
+                    styles={{
+                      picker: {
+                        zIndex: 1,
+                        width: 220,
+                        marginTop: 10,
+                        display: openColorPicker ? "block" : "none",
+                      }
+                    }}
+                    color={selectedNode?.style?.color ?? DefaultColor}
+                    onChange={(color) => {
+                      if (selectedNode) {
+                        setNodes(ns => ns.map(n => n.id === selectedNode.id ? {
+                          ...n,
+                          style: {
+                            ...n.style,
+                            color: color.hex,
+                          }
+                        } : n));
+                      }
+                    }}
+                  />
+                )}
+              </Box>
+            </ClickAwayListener>
           </Box>
         </Panel>
         <MiniMap style={{
