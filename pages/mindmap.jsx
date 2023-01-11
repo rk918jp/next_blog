@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useState, useRef} from "react";
 import {MainLayout} from "../components/MainLayout";
 import {Paper} from "@mui/material";
 import ReactFlow, {
@@ -8,7 +8,10 @@ import ReactFlow, {
   MiniMap,
   useEdgesState,
   useNodesState,
-  useKeyPress
+  useKeyPress,
+  useReactFlow,
+  updateEdge,
+  ReactFlowProvider,
 } from "reactflow";
 import 'reactflow/dist/style.css';
 
@@ -48,18 +51,36 @@ const initialNodes = [
 // nodeを繋ぐ線の初期値
 const initialEdges = [
   {
+    id: "a",
     source: "1",
     target: "2",
+    label: "test",
   },
   {
+    id: "b",
     source: "2",
     target: "3",
   }
 ];
 
 const MindMapPage = (props) => {
+  return (
+    <MainLayout>
+      <Paper sx={{
+        height: 600
+      }}>
+        <ReactFlowProvider>
+          <Flow/>
+        </ReactFlowProvider>
+      </Paper>
+    </MainLayout>
+  )
+}
+
+const Flow = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const {getIntersectingNodes} = useReactFlow();
   const [copyNode, setCopyNode] = useState();
   // TODO: keyPress hookが効かないことがあるので載せ替え
   const newPressed = useKeyPress("n");
@@ -73,6 +94,7 @@ const MindMapPage = (props) => {
     return nodes?.find((node) => node.selected);
   }, [nodes]);
 
+  // add
   useEffect(() => {
     if (newPressed) {
       setNodes((nodes) => nodes.concat({
@@ -86,6 +108,7 @@ const MindMapPage = (props) => {
     }
   }, [newPressed]);
 
+  // copy
   useEffect(() => {
     if (copyPressed && selectedNode) {
       console.log("copy", selectedNode)
@@ -93,6 +116,7 @@ const MindMapPage = (props) => {
     }
   }, [copyPressed, selectedNode]);
 
+  // paste
   useEffect(() => {
     if (pastePressed && copyNode) {
       console.log("paste", copyNode)
@@ -109,26 +133,52 @@ const MindMapPage = (props) => {
     }
   }, [pastePressed, copyNode]);
 
+  // edgeの削除
+  const edgeUpdateSuccessful = useRef(true);
+  const onEdgeUpdateStart = useCallback(() => {
+    edgeUpdateSuccessful.current = false;
+  }, []);
+  const onEdgeUpdate = useCallback((oldEdge, newConnection) => {
+    edgeUpdateSuccessful.current = true;
+    setEdges((els) => updateEdge(oldEdge, newConnection, els));
+  }, []);
+  const onEdgeUpdateEnd = useCallback((_, edge) => {
+    if (!edgeUpdateSuccessful.current) {
+      setEdges((eds) => eds.filter((e) => e.id !== edge.id));
+    }
+    edgeUpdateSuccessful.current = true;
+  }, []);
+
+  const onNodeDrag = useCallback((e, node) => {
+    const intersections = getIntersectingNodes(node).map((n) => n.id);
+
+    setNodes((ns) =>
+      ns.map((n) => ({
+        ...n,
+        className: intersections.includes(n.id) ? 'highlight' : '',
+      }))
+    );
+  }, []);
+
   return (
-    <MainLayout>
-      <Paper sx={{height: 600}}>
-        <ReactFlow
-          fitView
-          attributionPosition="top-right"
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          nodes={nodes}
-          edges={edges}
-          onConnect={onConnect}
-        >
-          <MiniMap style={{
-            height: 120,
-          }} zoomable pannable/>
-          <Controls/>
-          <Background color={"#aaa"}/>
-        </ReactFlow>
-      </Paper>
-    </MainLayout>
+    <ReactFlow
+      fitView
+      attributionPosition="top-right"
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onEdgeUpdate={onEdgeUpdate}
+      onEdgeUpdateStart={onEdgeUpdateStart}
+      onEdgeUpdateEnd={onEdgeUpdateEnd}
+      nodes={nodes}
+      edges={edges}
+      onConnect={onConnect}
+    >
+      <MiniMap style={{
+        height: 120,
+      }} zoomable pannable/>
+      <Controls/>
+      <Background color={"#aaa"}/>
+    </ReactFlow>
   )
 }
 
