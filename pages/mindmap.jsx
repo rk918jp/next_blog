@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState, useRef} from "react";
+import React, {useCallback, useEffect, useMemo, useState, useRef, memo} from "react";
 import {MainLayout} from "../components/MainLayout";
 import {Paper} from "@mui/material";
 import ReactFlow, {
@@ -12,8 +12,31 @@ import ReactFlow, {
   useReactFlow,
   updateEdge,
   ReactFlowProvider,
+  Handle,
+  Position,
 } from "reactflow";
 import 'reactflow/dist/style.css';
+
+// Custom Node
+const ContainerNode = ({
+                         data,
+                         isConnectable,
+                         targetPosition = Position.Top,
+                         sourcePosition = Position.Bottom,
+                       }) => {
+  return (
+    <>
+      <Handle type="target" position={targetPosition} isConnectable={isConnectable}/>
+      {data?.label}
+      <Handle type="source" position={sourcePosition} isConnectable={isConnectable}/>
+    </>
+  );
+};
+ContainerNode.displayName = "ContainerNode";
+
+const nodeTypes = {
+  container: memo(ContainerNode),
+};
 
 const initialNodes = [
   {
@@ -26,11 +49,11 @@ const initialNodes = [
   },
   {
     id: '2',
+    type: "container",
     data: {
       label: 'GroupA',
     },
     position: {x: 250, y: 100},
-    style: {backgroundColor: "rgba(255, 0, 0, 0.2)", width: 200, height: 200}
   },
   {
     id: "2a",
@@ -66,9 +89,7 @@ const initialEdges = [
 const MindMapPage = (props) => {
   return (
     <MainLayout>
-      <Paper sx={{
-        height: 600
-      }}>
+      <Paper sx={{height: 600}}>
         <ReactFlowProvider>
           <Flow/>
         </ReactFlowProvider>
@@ -111,7 +132,6 @@ const Flow = () => {
   // copy
   useEffect(() => {
     if (copyPressed && selectedNode) {
-      console.log("copy", selectedNode)
       setCopyNode(selectedNode);
     }
   }, [copyPressed, selectedNode]);
@@ -119,7 +139,6 @@ const Flow = () => {
   // paste
   useEffect(() => {
     if (pastePressed && copyNode) {
-      console.log("paste", copyNode)
       setNodes((nodes) => nodes.concat({
           ...copyNode,
           id: String(Date.now()),
@@ -149,9 +168,9 @@ const Flow = () => {
     edgeUpdateSuccessful.current = true;
   }, []);
 
+  // ホバー時のクラス付与
   const onNodeDrag = useCallback((e, node) => {
     const intersections = getIntersectingNodes(node).map((n) => n.id);
-
     setNodes((ns) =>
       ns.map((n) => ({
         ...n,
@@ -160,11 +179,44 @@ const Flow = () => {
     );
   }, []);
 
+  // ホバー時のクラス削除
+  // グルーピング
+  const onNodeDragStop = useCallback((e, node) => {
+    const intersections = getIntersectingNodes(node).map((n) => n.id);
+    const container = intersections
+      .map(id => nodes.find(n => n.id === id))
+      .find(n => n?.type === "container");
+    const isDetached = node.parentNode && !container;
+    const isAttached = !node.parentNode && container;
+    const newPosition = isAttached ? {
+      x: node.positionAbsolute.x - container.position.x,
+      y: node.positionAbsolute.y - container.position.y,
+    } : isDetached ? {
+      x: node.positionAbsolute.x,
+      y: node.positionAbsolute.y,
+    } : node.position;
+
+    setNodes((ns) =>
+      ns.map((n) => {
+        const isTarget = n.id === node.id;
+        return {
+          ...n,
+          className: (n.className ?? "").replace("highlight", ""),
+          parentNode: isTarget ? container?.id : n.parentNode,
+          position: isTarget ? newPosition : n.position,
+        };
+      })
+    );
+  }, [nodes]);
+
   return (
     <ReactFlow
       fitView
       attributionPosition="top-right"
+      nodeTypes={nodeTypes}
       onNodesChange={onNodesChange}
+      onNodeDrag={onNodeDrag}
+      onNodeDragStop={onNodeDragStop}
       onEdgesChange={onEdgesChange}
       onEdgeUpdate={onEdgeUpdate}
       onEdgeUpdateStart={onEdgeUpdateStart}
