@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma format && prisma migrate deploy"
+    "prisma:migrate": "prisma format && prisma migrate deploy",
+    "ws:start": "HOST=localhost PORT=1234 npx y-websocket"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
