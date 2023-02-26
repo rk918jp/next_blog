@@ -22,6 +22,12 @@ const CollaborateEditor = ({defaultValue, onChange}) => {
           extensions: [
             basicSetup,
             yCollab(yText, provider.awareness, {undoManager}),
+            EditorView.updateListener.of((e) => {
+              if (onChange) {
+                const a = e?.state?.doc?.toString();
+                onChange(a);
+              }
+            })
           ]
         }),
         parent: containerRef.current,

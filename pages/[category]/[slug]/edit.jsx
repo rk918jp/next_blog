@@ -23,7 +23,9 @@ import {availableMdxComponents} from "../../../definitions/availableMdxComponent
 import useSWR from "swr";
 import {fetcher} from "../../../util/fetcher";
 import {useMDX} from "../../../hooks/useMDX";
-import {MDXProvider} from '@mdx-js/react'
+import {MDXProvider} from '@mdx-js/react';
+
+const CollaborateEditor = dynamic(() => import("../../../components/CodeMirrorCollaborateEditor"), {ssr: false});
 
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor"),
@@ -162,20 +164,19 @@ const PostEditPage = (props) => {
             </Grid>
             <div data-color-mode="light">
               <div className="wmde-markdown-var"/>
-              <MDEditor
-                value={content}
-                onChange={setContent}
-                height={800}
-                components={{
-                  preview: (source) => {
-                    return (
-                      <MDXProvider components={availableMdxComponents}>
-                        <MDXPreview source={source} />
-                      </MDXProvider>
-                    )
-                  }
-                }}
-              />
+              <Grid container sx={{width: "100%"}}>
+                <Grid item xs={6} sx={{borderWidth: 1, borderColor: "#ccc", borderStyle: "solid"}}>
+                  <CollaborateEditor
+                    defaultValue={content}
+                    onChange={setContent}
+                  />
+                </Grid>
+                <Grid item xs={6} sx={{p: 2, borderWidth: 1, borderColor: "#ccc", borderStyle: "solid"}}>
+                  <MDXProvider components={availableMdxComponents}>
+                    <MDXPreview source={content}/>
+                  </MDXProvider>
+                </Grid>
+              </Grid>
             </div>
           </>
         )
@@ -187,7 +188,7 @@ const PostEditPage = (props) => {
 const MDXPreview = ({source}) => {
   const Content = useMDX(source);
   return (
-    <Content />
+    <Content/>
   )
 }
 
