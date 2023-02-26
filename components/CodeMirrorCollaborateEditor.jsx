@@ -1,29 +1,39 @@
 import * as Y from "yjs";
-import {markdown, markdownLanguage} from "@codemirror/lang-markdown";
-import {languages} from "@codemirror/language-data";
-import ReactCodeMirror from "@uiw/react-codemirror";
 import {WebsocketProvider} from "y-websocket";
 import {yCollab} from "y-codemirror.next";
+import {useEffect, useRef} from "react";
+import {EditorView, basicSetup} from "codemirror";
+import {EditorState} from "@codemirror/state";
 
-// TODO: 何故か初期値の復元ができない
-// (Caught error while handling a Yjs update RangeError: Position 10 out of range)
-const CollaborateEditor = () => {
-  const yDoc = new Y.Doc();
-  const provider = new WebsocketProvider("ws://localhost:1234", "my-roomname", yDoc);
-  const yText = yDoc.getText("codemirror");
-  const undoManager = new Y.UndoManager(yText);
+const yDoc = new Y.Doc();
+const provider = new WebsocketProvider("ws://localhost:1234", "my-roomname", yDoc);
+const yText = yDoc.getText("codemirror");
+const undoManager = new Y.UndoManager(yText);
+
+const CollaborateEditor = ({defaultValue, onChange}) => {
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+
+      const editorView = new EditorView({
+        state: EditorState.create({
+          doc: defaultValue,
+          extensions: [
+            basicSetup,
+            yCollab(yText, provider.awareness, {undoManager}),
+          ]
+        }),
+        parent: containerRef.current,
+      });
+      return () => {
+        editorView.destroy();
+      }
+    }
+  }, [containerRef])
 
   return (
-    <ReactCodeMirror
-      value={`## Title`}
-      extensions={[
-        markdown({
-          base: markdownLanguage,
-          codeLanguages: languages,
-        }),
-        yCollab(yText, provider.awareness, {undoManager})
-      ]}
-    />
+    <div ref={containerRef}/>
   )
 }
 
