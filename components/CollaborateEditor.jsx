@@ -9,9 +9,10 @@ import {
 } from 'remirror/extensions';
 import md from 'refractor/lang/markdown.js';
 import typescript from 'refractor/lang/typescript.js';
+import jsx from 'refractor/lang/jsx.js';
 import {WebsocketProvider} from "y-websocket";
 import {
-  Remirror,
+  Remirror, useHelpers,
   useRemirror,
 } from "@remirror/react";
 
@@ -24,7 +25,7 @@ const extensions = () => [
   new DocExtension({content: "codeBlock"}),
   // ハイライトの設定
   new CodeBlockExtension({
-    supportedLanguages: [md, typescript],
+    supportedLanguages: [md, typescript, jsx],
     defaultLanguage: 'markdown',
     syntaxTheme: 'base16_ateliersulphurpool_light',
     defaultWrap: true,
@@ -33,15 +34,25 @@ const extensions = () => [
 ]
 
 const CollaborateEditor = () => {
-  const {manager} = useRemirror({
+  const {manager, state, onChange} = useRemirror({
     extensions,
     core: {
       excludeExtensions: ["history"]
     }
-  })
+  });
 
   return (
-    <Remirror manager={manager} autoFocus autoRender={"end"}></Remirror>
+    <Remirror
+      manager={manager}
+      autoFocus
+      autoRender={"end"}
+      state={state}
+      onChange={(params) => {
+        // MDX形式の文字列
+        const rawText = params.helpers.getText();
+        onChange(params);
+      }}
+    />
   )
 }
 
