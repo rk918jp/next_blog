@@ -34,6 +34,7 @@
     "@remirror/pm": "^2.0.3",
     "@remirror/react": "^2.0.25",
     "@remirror/react-editors": "^1.0.25",
+    "@socialgouv/matomo-next": "^1.6.1",
     "@uiw/react-md-editor": "^3.18.1",
     "axios": "^0.27.2",
     "codemirror": "^6.0.1",
