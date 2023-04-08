@@ -27,11 +27,6 @@ import {MDXProvider} from '@mdx-js/react';
 
 const CollaborateEditor = dynamic(() => import("../../../components/CodeMirrorCollaborateEditor"), {ssr: false});
 
-const MDEditor = dynamic(
-  () => import("@uiw/react-md-editor"),
-  {ssr: false}
-)
-
 const PostEditPage = (props) => {
   const router = useRouter();
   const {query} = router;
