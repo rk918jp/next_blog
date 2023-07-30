@@ -9,7 +9,8 @@
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma format && prisma migrate deploy",
-    "ws:start": "HOST=localhost PORT=1234 npx y-websocket"
+    "ws:start": "HOST=localhost PORT=1234 npx y-websocket",
+    "ws:start:persist": "HOST=localhost PORT=1234 YPERSISTENCE=./db npx y-websocket"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
