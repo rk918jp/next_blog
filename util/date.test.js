@@ -22,4 +22,23 @@ describe("formatDateTime", () => {
       }
     )).toBe("20230102_1245_678")
   });
+
+  test.each([
+    [undefined],
+    [null],
+    [0],
+    [{}],
+    [""]
+  ])("不正値が入力されたらエラーを出す", (input) => {
+    expect(() => formatDateTime(input)).toThrow(/Invalid input/)
+  });
+
+  test.each([
+    ["abc", undefined],
+    ["0000_1111_2222", undefined],
+    ["2023-01-02-03-45", undefined],
+    ["2023-01-02T03:45.678Z", {inputFormat: "YYYYMMDDHHmmSSS"}],
+  ])("フォーマットできない場合にエラーを出す", (input, config) => {
+    expect(() => formatDateTime(input, config)).toThrow(/Invalid/)
+  });
 })
