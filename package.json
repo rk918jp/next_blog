@@ -11,7 +11,15 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma format && prisma migrate deploy",
     "ws:start": "HOST=localhost PORT=1234 npx y-websocket",
-    "ws:start:persist": "HOST=localhost PORT=1234 YPERSISTENCE=./db npx y-websocket"
+    "ws:start:persist": "HOST=localhost PORT=1234 YPERSISTENCE=./db npx y-websocket",
+    "postinstall": "husky install",
+    "lint-staged": "lint-staged"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "yarn test"
+    }
   },
   "prisma": {
     "seed": "node prisma/seed.js"
@@ -84,8 +92,13 @@
     "@testing-library/react": "^14.0.0",
     "eslint": "8.23.0",
     "eslint-config-next": "12.3.0",
+    "husky": "^8.0.3",
     "jest": "^29.6.2",
     "jest-environment-jsdom": "^29.6.2",
+    "lint-staged": ">=10",
     "prisma": "^4.5.0"
+  },
+  "lint-staged": {
+    "*.js": "eslint --cache --fix"
   }
 }
