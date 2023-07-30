@@ -16,10 +16,10 @@ import {
   Typography
 } from "@mui/material";
 import Link from "next/link";
-import moment from "moment";
 import axios from "axios";
 import useSWR from "swr";
 import {fetcher} from "../util/fetcher";
+import {formatDateTime} from "../util/date";
 
 const Home = () => {
   const [deletePost, setDeletePost] = React.useState();
@@ -41,6 +41,7 @@ const Home = () => {
   };
 
   const {data, loading, error} = useSWR("/api/getPostsByCategory", fetcher);
+  console.log(data);
 
   return (
     <MainLayout>
@@ -74,7 +75,7 @@ const Home = () => {
                           titleTypographyProps={{
                             variant: "h5"
                           }}
-                          subheader={moment(post.publishedAt).format("YYYY/MM/DD HH:mm")}
+                          subheader={formatDateTime(post.publishedAt)}
                           subheaderTypographyProps={{
                             variant: "subtitle2",
                           }}
