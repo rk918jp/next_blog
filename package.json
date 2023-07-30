@@ -15,12 +15,6 @@
     "postinstall": "husky install",
     "lint-staged": "lint-staged"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "pre-push": "yarn test"
-    }
-  },
   "prisma": {
     "seed": "node prisma/seed.js"
   },
